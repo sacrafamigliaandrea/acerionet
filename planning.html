@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Planning Settimanale — Area Riservata</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --green:#1B6D3F; --green-dark:#155832; --green-soft:#e8efe9;
+    --ink:#0d231a; --ink-soft:#536b5f;
+    --bg:#EAF1F2; --card:#ffffff;
+    --line:#d6e0d9; --warn:#c8784f;
+    --prim:#EE7C00; --prim-soft:#fff1e0;
+    --sec:#1E4A8A;  --sec-soft:#e3eef9;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; padding:0;
+    font-family:'IBM Plex Sans', system-ui, sans-serif;
+    background:var(--bg); color:var(--ink); min-height:100vh;
+  }
+
+  /* LOGIN */
+  .login-wrap{ min-height:100vh; display:flex; align-items:center; justify-content:center; padding:20px; }
+  .login-card{
+    background:var(--card); padding:38px 36px; border-radius:14px;
+    box-shadow:0 12px 32px rgba(13,35,26,.08);
+    width:min(94vw, 380px); border-top:4px solid var(--green);
+  }
+  .login-card h1{
+    font-size:13px; letter-spacing:.08em; text-transform:uppercase;
+    color:var(--green); margin:0 0 4px; font-weight:600;
+  }
+  .login-card h2{ font-size:24px; margin:0 0 24px; color:var(--ink); }
+  .login-card input{
+    width:100%; padding:12px 14px; border:1.5px solid var(--line);
+    border-radius:8px; font-size:16px; font-family:inherit;
+    margin-bottom:14px; background:#fff;
+  }
+  .login-card input:focus{outline:none; border-color:var(--green)}
+  .login-card button{
+    width:100%; padding:12px; background:var(--green); color:#fff;
+    border:none; border-radius:8px; font-size:16px; font-weight:600;
+    cursor:pointer; font-family:inherit;
+  }
+  .login-card button:hover{background:var(--green-dark)}
+  .login-error{ color:var(--warn); font-size:14px; margin-top:8px; min-height:18px; }
+
+  /* APP */
+  .app{display:none}
+  .app.show{display:block}
+
+  header.topbar{
+    background:var(--card); padding:18px 28px;
+    border-bottom:1px solid var(--line);
+    display:flex; align-items:center; justify-content:space-between;
+    flex-wrap:wrap; gap:12px;
+  }
+  header.topbar h1{
+    margin:0; font-size:13px; letter-spacing:.08em; text-transform:uppercase;
+    color:var(--green); font-weight:600;
+  }
+  header.topbar h2{ margin:2px 0 0; font-size:22px; color:var(--ink); }
+  .topbar-actions{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
+  .btn-ghost{
+    padding:8px 14px; background:transparent; color:var(--ink-soft);
+    border:1.5px solid var(--line); border-radius:8px; cursor:pointer;
+    font-family:inherit; font-size:14px; font-weight:500;
+    text-decoration:none; display:inline-block;
+  }
+  .btn-ghost:hover{border-color:var(--green); color:var(--green)}
+  .btn-ghost.primary{background:var(--green); color:#fff; border-color:var(--green)}
+  .btn-ghost.primary:hover{background:var(--green-dark); border-color:var(--green-dark); color:#fff}
+
+  main{padding:24px 28px; max-width:1500px; margin:0 auto}
+
+  /* Nav settimana */
+  .week-nav{
+    display:flex; align-items:center; gap:14px;
+    background:var(--card); padding:14px 20px; border-radius:12px;
+    border:1px solid var(--line); margin-bottom:22px;
+    flex-wrap:wrap; justify-content:space-between;
+  }
+  .week-nav .center{
+    display:flex; gap:12px; align-items:center; flex-wrap:wrap; flex:1;
+    justify-content:center;
+  }
+  .week-arrow{
+    background:#fff; border:1.5px solid var(--line);
+    width:38px; height:38px; border-radius:9px;
+    cursor:pointer; font-size:18px; color:var(--ink); font-weight:600;
+    display:inline-flex; align-items:center; justify-content:center;
+    transition:all .15s;
+  }
+  .week-arrow:hover{border-color:var(--green); color:var(--green); background:var(--green-soft)}
+  .week-label{
+    font-size:18px; font-weight:600; color:var(--ink);
+    letter-spacing:.01em;
+  }
+  .week-label .small{font-size:13px; color:var(--ink-soft); font-weight:500; margin-left:6px}
+  .week-nav input[type=date]{
+    padding:8px 12px; border:1.5px solid var(--line); border-radius:8px;
+    font-family:inherit; font-size:14px; background:#fff;
+  }
+  .week-nav input[type=date]:focus{outline:none; border-color:var(--green)}
+
+  /* Sezioni */
+  .section{
+    background:var(--card); border-radius:12px; border:1px solid var(--line);
+    padding:18px; margin-bottom:22px;
+  }
+  .section h3{
+    margin:0 0 14px; font-size:15px; color:var(--ink); font-weight:600;
+    display:flex; align-items:center; justify-content:space-between;
+  }
+  .section h3 .hint{font-size:12px; color:var(--ink-soft); font-weight:400}
+
+  /* Planning grid */
+  .planning-wrap{overflow-x:auto}
+  table.planning{
+    width:100%; border-collapse:separate; border-spacing:6px;
+    table-layout:fixed; min-width:900px;
+  }
+  table.planning thead th{
+    padding:10px 8px; text-align:center;
+    background:var(--green-soft); color:var(--green-dark);
+    border-radius:8px; font-weight:600; font-size:13px;
+    letter-spacing:.02em;
+  }
+  table.planning thead th .day{font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:var(--ink-soft); font-weight:500; display:block}
+  table.planning thead th .num{font-size:18px; color:var(--ink); display:block; margin-top:2px}
+  table.planning thead th.today{background:var(--green); color:#fff}
+  table.planning thead th.today .day{color:rgba(255,255,255,.85)}
+  table.planning thead th.today .num{color:#fff}
+
+  table.planning th.slot-label{
+    text-align:right; padding:8px 12px 8px 0;
+    background:transparent; color:var(--ink-soft);
+    font-weight:500; font-size:12px; width:80px;
+    vertical-align:middle;
+  }
+  table.planning th.slot-label .from{
+    display:block; font-size:14px; color:var(--ink); font-weight:600;
+  }
+  table.planning th.slot-label .to{
+    display:block; font-size:11px; color:var(--ink-soft);
+  }
+
+  table.planning td.cell{
+    padding:0; border-radius:9px; height:90px;
+    vertical-align:top; position:relative;
+    background:#fafdfb; border:1px solid #eef3ef;
+  }
+  table.planning td.cell.empty-slot{
+    background:repeating-linear-gradient(45deg, #f5f7f6, #f5f7f6 6px, #fafdfb 6px, #fafdfb 12px);
+    border:1px dashed #e0e6e2;
+  }
+  table.planning td.cell .inner{
+    padding:9px 10px 8px; height:100%; display:flex; flex-direction:column;
+  }
+  .cell-classe{
+    font-size:11px; text-transform:uppercase; letter-spacing:.05em;
+    font-weight:600; padding:3px 8px; border-radius:11px; align-self:flex-start;
+  }
+  .cell-classe.prim{background:var(--prim-soft); color:#a65a18}
+  .cell-classe.sec{background:var(--sec-soft); color:var(--sec)}
+  .cell-apps{
+    margin-top:6px; flex:1; display:flex; flex-direction:column; gap:3px;
+    min-height:0; overflow:hidden;
+  }
+  .cell-app{
+    font-size:13px; color:var(--ink); line-height:1.25;
+    background:#fff; border:1px solid var(--line); border-radius:6px;
+    padding:5px 8px; font-weight:500;
+    overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  }
+  .cell-app a{color:inherit; text-decoration:none}
+  .cell-app a:hover{color:var(--green)}
+  .cell-app .ora{color:var(--ink-soft); font-size:11px; font-weight:400; margin-right:4px}
+  .cell-app.more{
+    background:var(--green-soft); color:var(--green-dark); text-align:center;
+    font-size:11px; padding:3px 8px;
+  }
+  .cell-empty-msg{
+    font-size:12px; color:var(--ink-soft); font-style:italic;
+    margin-top:6px;
+  }
+  .cell-na-msg{
+    font-size:12px; color:#a8b3ad; align-self:flex-start;
+  }
+
+  /* Pillole giornaliere riassuntive sotto headers */
+  .day-summary{
+    background:var(--card); padding:6px; border-radius:8px;
+    text-align:center; font-size:11px; color:var(--ink-soft);
+    margin-top:5px; font-weight:500;
+  }
+  .day-summary strong{color:var(--green); font-size:13px}
+
+  /* Anomalie */
+  .anomalie-list{display:flex; flex-direction:column; gap:8px}
+  .anomalia{
+    background:#fdf6f2; border:1px solid #f0d5c2; border-radius:8px;
+    padding:10px 14px; font-size:14px; display:flex;
+    justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap;
+  }
+  .anomalia .meta{color:var(--warn); font-weight:500; font-size:13px}
+  .anomalia .meta strong{color:#8b4a26}
+
+  .empty-state{
+    text-align:center; padding:30px 20px; color:var(--ink-soft); font-size:14px;
+  }
+  .loading{padding:40px; text-align:center; color:var(--ink-soft)}
+
+  @media (max-width:680px){
+    main{padding:14px}
+    header.topbar{padding:14px 16px}
+    .week-nav{padding:12px 14px}
+    .week-label{font-size:15px}
+    .section{padding:14px}
+  }
+
+  @media print{
+    body{background:#fff}
+    header.topbar, .week-nav, .topbar-actions{display:none}
+    .section{box-shadow:none; border:1px solid #ddd; page-break-inside:avoid}
+    main{padding:0; max-width:100%}
+  }
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div class="login-wrap" id="loginWrap">
+  <div class="login-card">
+    <h1>Area riservata</h1>
+    <h2>Planning settimanale</h2>
+    <input type="password" id="pwd" placeholder="Password" autocomplete="current-password">
+    <button id="loginBtn">Accedi</button>
+    <div class="login-error" id="loginErr"></div>
+  </div>
+</div>
+
+<!-- APP -->
+<div class="app" id="app">
+
+  <header class="topbar">
+    <div>
+      <h1>Sacra Famiglia · Animatore Digitale</h1>
+      <h2>Planning settimanale</h2>
+    </div>
+    <div class="topbar-actions">
+      <a href="registro.html" class="btn-ghost">Statistiche</a>
+      <button class="btn-ghost" onclick="window.print()">Stampa</button>
+      <button class="btn-ghost" id="refreshBtn">Aggiorna</button>
+      <button class="btn-ghost" id="logoutBtn">Esci</button>
+    </div>
+  </header>
+
+  <main>
+
+    <!-- Navigazione settimana -->
+    <div class="week-nav">
+      <button class="week-arrow" id="prevWeek" title="Settimana precedente">◀</button>
+      <div class="center">
+        <span class="week-label" id="weekLabel">—</span>
+        <input type="date" id="weekDate">
+        <button class="btn-ghost primary" id="todayBtn">Oggi</button>
+      </div>
+      <button class="week-arrow" id="nextWeek" title="Settimana successiva">▶</button>
+    </div>
+
+    <!-- Griglia planning -->
+    <section class="section">
+      <div class="planning-wrap" id="planningWrap">
+        <div class="loading">Caricamento dati…</div>
+      </div>
+    </section>
+
+    <!-- Sessioni fuori griglia (sostituzioni / anomalie) -->
+    <section class="section" id="anomalieSec" style="display:none">
+      <h3>Sessioni fuori griglia <span class="hint">classi diverse da quelle previste dall'orario</span></h3>
+      <div class="anomalie-list" id="anomalieWrap"></div>
+    </section>
+
+  </main>
+</div>
+
+<script>
+(function(){
+  'use strict';
+
+  // ============== CONFIG ==============
+  // SHA-256 di "GuidoTersilli" (stessa password della tua area riservata)
+  const PWD_HASH = '09c003a4de02c6b43775857066acf54bd24630f9d55679bae66b2c1100cddaff';
+
+  // Endpoint Apps Script (lo stesso del registro)
+  const ENDPOINT = 'https://script.google.com/macros/s/AKfycbwOIxvpNEQnOr-TQTqzMycue8D8BN2Ths81ewTjAG7junkAeDhd26mBHsPlc5S3c-hE/exec';
+
+  // STORAGE_KEY identico a registro.html → SSO interno tra le due pagine
+  const STORAGE_KEY = 'reg_auth_v1';
+
+  // ============== ORARIO ==============
+  // 1=Lun ... 5=Ven
+  const ORARIO = {
+    1: [
+      { from:'08:00', to:'09:05', id:'SEC_1B', label:'1B Sec',  livello:'sec' },
+      { from:'09:05', to:'09:55', id:'SEC_3A', label:'3A Sec',  livello:'sec' },
+      { from:'09:55', to:'11:00', id:'SEC_2C', label:'2C Sec',  livello:'sec' },
+      { from:'11:00', to:'11:50', id:'PRIM_2A',label:'2A Prim', livello:'prim' },
+      { from:'11:50', to:'13:00', id:'PRIM_2B',label:'2B Prim', livello:'prim' }
+    ],
+    2: [
+      { from:'08:00', to:'09:05', id:'SEC_1C', label:'1C Sec',  livello:'sec' },
+      { from:'09:05', to:'09:55', id:'SEC_2A', label:'2A Sec',  livello:'sec' },
+      { from:'09:55', to:'11:00', id:'SEC_2B', label:'2B Sec',  livello:'sec' },
+      { from:'11:00', to:'11:50', id:'PRIM_1B',label:'1B Prim', livello:'prim' },
+      { from:'11:50', to:'13:00', id:'PRIM_1A',label:'1A Prim', livello:'prim' }
+    ],
+    3: [
+      { from:'08:00', to:'09:05', id:'PRIM_5A',label:'5A Prim', livello:'prim' },
+      { from:'09:05', to:'09:55', id:'SEC_3C', label:'3C Sec',  livello:'sec' },
+      { from:'09:55', to:'11:00', id:'PRIM_5B',label:'5B Prim', livello:'prim' },
+      { from:'11:00', to:'11:50', id:'SEC_1A', label:'1A Sec',  livello:'sec' },
+      { from:'11:50', to:'13:00', id:'SEC_3B', label:'3B Sec',  livello:'sec' }
+    ],
+    4: [
+      { from:'08:00', to:'09:55', id:'PRIM_4A',label:'4A Prim', livello:'prim' },
+      { from:'09:55', to:'11:00', id:'PRIM_4B',label:'4B Prim', livello:'prim' }
+    ],
+    5: [
+      { from:'08:00', to:'09:55', id:'PRIM_3A',label:'3A Prim', livello:'prim' },
+      { from:'09:55', to:'11:00', id:'PRIM_3B',label:'3B Prim', livello:'prim' }
+    ]
+  };
+
+  // Fasce standard usate come righe della tabella
+  const FASCE = [
+    { from:'08:00', to:'09:05' },
+    { from:'09:05', to:'09:55' },
+    { from:'09:55', to:'11:00' },
+    { from:'11:00', to:'11:50' },
+    { from:'11:50', to:'13:00' }
+  ];
+
+  const GIORNI_LABEL = ['Dom','Lun','Mar','Mer','Gio','Ven','Sab'];
+  const GIORNI_FULL  = ['Domenica','Lunedì','Martedì','Mercoledì','Giovedì','Venerdì','Sabato'];
+
+  // ============== AUTH ==============
+  async function sha256(str){
+    const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+    return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2,'0')).join('');
+  }
+  async function tryLogin(){
+    const pwd = document.getElementById('pwd').value;
+    const err = document.getElementById('loginErr');
+    err.textContent = '';
+    if (!pwd) return;
+    const h = await sha256(pwd);
+    if (h === PWD_HASH){
+      sessionStorage.setItem(STORAGE_KEY, '1');
+      showApp();
+    } else {
+      err.textContent = 'Password non valida';
+    }
+  }
+  function showApp(){
+    document.getElementById('loginWrap').style.display = 'none';
+    document.getElementById('app').classList.add('show');
+    initWeekControls();
+    loadData();
+  }
+  function logout(){
+    sessionStorage.removeItem(STORAGE_KEY);
+    location.reload();
+  }
+  document.getElementById('loginBtn').addEventListener('click', tryLogin);
+  document.getElementById('pwd').addEventListener('keydown', e => { if (e.key === 'Enter') tryLogin(); });
+  document.getElementById('logoutBtn').addEventListener('click', logout);
+  document.getElementById('refreshBtn').addEventListener('click', loadData);
+  if (sessionStorage.getItem(STORAGE_KEY) === '1') showApp();
+
+  // ============== DATA ==============
+  let DATA = [];
+
+  function loadData(){
+    document.getElementById('planningWrap').innerHTML = '<div class="loading">Caricamento dati…</div>';
+    const cbName = 'plan_cb_' + Date.now();
+    window[cbName] = function(payload){
+      try {
+        if (!payload || !payload.ok){
+          document.getElementById('planningWrap').innerHTML =
+            '<div class="empty-state">Errore: ' + (payload && payload.error || 'risposta non valida') + '</div>';
+          return;
+        }
+        DATA = payload.rows || [];
+        DATA.forEach(r => {
+          if (r.timestamp && typeof r.timestamp === 'string') r._ts = new Date(r.timestamp);
+        });
+        renderPlanning();
+      } finally { delete window[cbName]; }
+    };
+    const s = document.createElement('script');
+    s.src = ENDPOINT + '?action=list&callback=' + cbName + '&nocache=' + Date.now();
+    s.onerror = () => {
+      document.getElementById('planningWrap').innerHTML =
+        '<div class="empty-state">Errore di rete nel caricare i dati.</div>';
+    };
+    document.body.appendChild(s);
+  }
+
+  // ============== WEEK CONTROLS ==============
+  let currentMonday = startOfWeek(new Date());
+
+  function initWeekControls(){
+    document.getElementById('prevWeek').addEventListener('click', () => {
+      currentMonday = addDays(currentMonday, -7); renderPlanning();
+    });
+    document.getElementById('nextWeek').addEventListener('click', () => {
+      currentMonday = addDays(currentMonday, 7); renderPlanning();
+    });
+    document.getElementById('todayBtn').addEventListener('click', () => {
+      currentMonday = startOfWeek(new Date()); renderPlanning();
+    });
+    document.getElementById('weekDate').addEventListener('change', e => {
+      const v = e.target.value;
+      if (!v) return;
+      const [y,m,d] = v.split('-').map(Number);
+      currentMonday = startOfWeek(new Date(y, m-1, d));
+      renderPlanning();
+    });
+  }
+
+  // ============== HELPERS ==============
+  function pad(n){ return String(n).padStart(2,'0'); }
+  function fmtDate(d){ return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()); }
+  function timeToMin(hhmm){ const [h,m] = hhmm.split(':').map(Number); return h*60+m; }
+  function startOfWeek(d){
+    const x = new Date(d); x.setHours(0,0,0,0);
+    const dow = x.getDay();
+    const offset = (dow === 0 ? -6 : 1 - dow);
+    x.setDate(x.getDate() + offset);
+    return x;
+  }
+  function addDays(d, n){
+    const x = new Date(d); x.setDate(x.getDate() + n); return x;
+  }
+  function fmtDateIt(d){
+    const m = ['gen','feb','mar','apr','mag','giu','lug','ago','set','ott','nov','dic'];
+    return pad(d.getDate())+' '+m[d.getMonth()];
+  }
+  function isToday(d){
+    const t = new Date(); t.setHours(0,0,0,0);
+    const x = new Date(d); x.setHours(0,0,0,0);
+    return t.getTime() === x.getTime();
+  }
+  function escapeHtml(s){ return String(s||'').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+  // Per ogni slot dell'ORARIO, calcolo l'indice della fascia di partenza
+  // e la durata in fasce (rowspan)
+  function slotMeta(slot){
+    const fromMin = timeToMin(slot.from);
+    const toMin = timeToMin(slot.to);
+    let startIdx = -1, span = 0;
+    for (let i = 0; i < FASCE.length; i++){
+      const fmin = timeToMin(FASCE[i].from);
+      const tmin = timeToMin(FASCE[i].to);
+      if (fmin >= fromMin && tmin <= toMin){
+        if (startIdx < 0) startIdx = i;
+        span++;
+      }
+    }
+    return { startIdx, span };
+  }
+
+  // ============== RENDER ==============
+  function renderPlanning(){
+    // Aggiorna label settimana
+    const friday = addDays(currentMonday, 4);
+    const wlabel = `${fmtDateIt(currentMonday)} – ${fmtDateIt(friday)} ${friday.getFullYear()}`;
+    document.getElementById('weekLabel').textContent = wlabel;
+    document.getElementById('weekDate').value = fmtDate(currentMonday);
+
+    // Calcola le date dei 5 giorni
+    const giorniData = [];
+    for (let i = 0; i < 5; i++) giorniData.push(addDays(currentMonday, i));
+
+    // Indice dei record per (data, classe_id) → array di record
+    const indexByDayClass = {};
+    // Indice per "fuori griglia": record con classe_id non presente nell'orario di quel giorno
+    const fuoriGriglia = [];
+
+    DATA.forEach(r => {
+      if (!r.data || !r.classe_id) return;
+      // Verifico se la data appartiene alla settimana visualizzata
+      let inWeek = false;
+      let giornoIdx = -1;
+      for (let i = 0; i < 5; i++){
+        if (r.data === fmtDate(giorniData[i])){ inWeek = true; giornoIdx = i+1; break; }
+      }
+      if (!inWeek) return;
+
+      // Verifico se questa classe è prevista nell'orario di quel giorno
+      const slotsDelGiorno = ORARIO[giornoIdx] || [];
+      const previstaInGiorno = slotsDelGiorno.some(s => s.id === r.classe_id);
+
+      if (previstaInGiorno){
+        const k = r.data + '|' + r.classe_id;
+        (indexByDayClass[k] = indexByDayClass[k] || []).push(r);
+      } else {
+        fuoriGriglia.push(r);
+      }
+    });
+
+    // Costruzione tabella
+    let html = '<table class="planning"><thead><tr>';
+    html += '<th class="slot-label"></th>';
+    for (let i = 0; i < 5; i++){
+      const d = giorniData[i];
+      const todayCls = isToday(d) ? ' class="today"' : '';
+      // Conta sessioni del giorno
+      const cnt = DATA.filter(r => r.data === fmtDate(d)).length;
+      html += `<th${todayCls}>
+        <span class="day">${GIORNI_FULL[i+1]}</span>
+        <span class="num">${pad(d.getDate())}/${pad(d.getMonth()+1)}</span>
+        <div class="day-summary"><strong>${cnt}</strong> ${cnt===1?'sessione':'sessioni'}</div>
+      </th>`;
+    }
+    html += '</tr></thead><tbody>';
+
+    // skipMatrix[fasciaIdx][giornoIdx 0..4] = true se la cella è già occupata da un rowspan precedente
+    const skip = FASCE.map(() => [false,false,false,false,false]);
+
+    FASCE.forEach((fascia, fIdx) => {
+      html += `<tr><th class="slot-label">
+        <span class="from">${fascia.from}</span>
+        <span class="to">→ ${fascia.to}</span>
+      </th>`;
+
+      for (let g = 0; g < 5; g++){
+        if (skip[fIdx][g]) continue; // già coperto da rowspan precedente
+
+        const giornoIdx = g + 1;
+        const slotsDelGiorno = ORARIO[giornoIdx] || [];
+        // Cerco lo slot dell'orario che copre questa fascia
+        const slot = slotsDelGiorno.find(s => {
+          const meta = slotMeta(s);
+          return meta.startIdx <= fIdx && meta.startIdx + meta.span > fIdx;
+        });
+
+        if (!slot){
+          // Fascia non in orario → cella tratteggiata
+          html += `<td class="cell empty-slot"><div class="inner"><span class="cell-na-msg">non in orario</span></div></td>`;
+          continue;
+        }
+
+        const meta = slotMeta(slot);
+        // Se questa cella è una "continuazione" (non è la prima della span), salto
+        if (meta.startIdx !== fIdx){
+          // Non dovrebbe accadere grazie allo skip, ma per sicurezza
+          continue;
+        }
+        // Marco come skip le fasce successive coperte dal rowspan
+        for (let s = 1; s < meta.span; s++){
+          if (fIdx + s < FASCE.length) skip[fIdx + s][g] = true;
+        }
+
+        const dayDate = giorniData[g];
+        const k = fmtDate(dayDate) + '|' + slot.id;
+        const sessioni = indexByDayClass[k] || [];
+
+        const livelloCls = slot.livello;
+        const rowspanAttr = meta.span > 1 ? ` rowspan="${meta.span}"` : '';
+
+        let appsHtml = '';
+        if (sessioni.length === 0){
+          appsHtml = `<div class="cell-empty-msg">Nessuna app registrata</div>`;
+        } else {
+          // Ordinate per ora
+          sessioni.sort((a,b) => (a.ora||'').localeCompare(b.ora||''));
+          const max = 3;
+          sessioni.slice(0, max).forEach(s => {
+            const link = s.webapp_url ? `<a href="${escapeHtml(s.webapp_url)}" target="_blank" rel="noopener">${escapeHtml(s.webapp_titolo || '—')}</a>` : escapeHtml(s.webapp_titolo || '—');
+            appsHtml += `<div class="cell-app" title="${escapeHtml(s.webapp_titolo||'')} · ${escapeHtml(s.ora||'')}">
+              <span class="ora">${escapeHtml(s.ora||'')}</span>${link}
+            </div>`;
+          });
+          if (sessioni.length > max){
+            appsHtml += `<div class="cell-app more">+ ${sessioni.length - max} altre</div>`;
+          }
+        }
+
+        html += `<td class="cell"${rowspanAttr}><div class="inner">
+          <span class="cell-classe ${livelloCls}">${escapeHtml(slot.label)}</span>
+          <div class="cell-apps">${appsHtml}</div>
+        </div></td>`;
+      }
+      html += '</tr>';
+    });
+    html += '</tbody></table>';
+    document.getElementById('planningWrap').innerHTML = html;
+
+    // Anomalie / fuori griglia
+    renderAnomalie(fuoriGriglia);
+  }
+
+  function renderAnomalie(items){
+    const sec = document.getElementById('anomalieSec');
+    const wrap = document.getElementById('anomalieWrap');
+    if (!items.length){ sec.style.display = 'none'; return; }
+    sec.style.display = '';
+    items.sort((a,b) => (a.data+a.ora||'').localeCompare(b.data+b.ora||''));
+    let h = '';
+    items.forEach(r => {
+      const url = r.webapp_url || '#';
+      h += `<div class="anomalia">
+        <div class="meta">
+          <strong>${escapeHtml(r.giorno||'')} ${escapeHtml(r.data||'')}</strong>
+          · ${escapeHtml(r.ora||'')} · ${escapeHtml(r.classe_label||'')}
+        </div>
+        <div><a href="${escapeHtml(url)}" target="_blank" rel="noopener" style="color:var(--green);text-decoration:none;font-weight:500">${escapeHtml(r.webapp_titolo||'—')}</a></div>
+      </div>`;
+    });
+    wrap.innerHTML = h;
+  }
+
+})();
+</script>
+</body>
+</html>
